@@ -20,10 +20,18 @@ int paddleX2 = WIDTH - 1; // Начальная позиция 2ой площа�
 int scorePlayer1 = 0;
 int scorePlayer2 = 0;
 
-int getPixelNumber(int x, int y)// Функция для преобразования координат пикселя в его номер
-{
-  return y * WIDTH + x;
-}
+int getPixelNumber(int x, int y) {
+  // Функция для преобразования координат x, y в номер светодиода в матрице
+  if (y % 2 == 0)
+  {
+    // Четные строки идут в прямом направлении
+    return y * WIDTH + x;
+  } 
+  else
+  {
+    // Нечетные строки идут в обратном направлении
+    return y * WIDTH + (WIDTH - 1 - x);
+  }
 
 void resetBall() // Функция возвращения мяча
  {
@@ -39,9 +47,7 @@ void setup()
    pinMode(BUTTON_R, INPUT_PULLUP);
    pinMode(BUTTON_L, INPUT_PULLUP);
    Serial.begin(9600);  
-   pinMode(BUTTON_R, INPUT);
    digitalWrite(BUTTON_R, HIGH);
-   pinMode(BUTTON_L, INPUT);
    digitalWrite(BUTTON_L, HIGH);
 }
 
