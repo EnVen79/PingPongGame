@@ -32,6 +32,7 @@ int getPixelNumber(int x, int y) {
     // Нечетные строки идут в обратном направлении
     return y * WIDTH + (WIDTH - 1 - x);
   }
+}
 
 void resetBall() // Функция возвращения мяча
  {
