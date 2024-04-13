@@ -46,23 +46,11 @@ void setup()
    pinMode(BUTTON_R, INPUT_PULLUP);
    pinMode(BUTTON_L, INPUT_PULLUP);
    Serial.begin(9600);  
-   digitalWrite(BUTTON_R, HIGH);
-   digitalWrite(BUTTON_L, HIGH);
 }
 
 void loop() 
 { 
-   // Отображение нажатия кнопок
   NeoPixel.clear();
-  if (digitalRead(BUTTON_R) == LOW) {
-    Serial.println("Button R is pressed");
-    delay(DELAY);
-  }
-
-  else if (digitalRead(BUTTON_L) == LOW) {
-    Serial.println("Button L is pressed");
-    delay(DELAY);
-  }
    // Обновление позиции мяча
   ballX += ballDirX;
   ballY += ballDirY;
