@@ -1,26 +1,40 @@
 #include <Adafruit_NeoPixel.h>
+#ifdef _AVR_
+#include <avr/power.h>
+#endif
 #define PIN 6
-#define WIDTH 8 // Ширина
-#define HEIGHT 8 // Высота
+#define WIDTH 16 // Ширина
+#define HEIGHT 16 // Высота
 #define NUMPIXELS WIDTH * HEIGHT // Колличество пикселей
-#define PADDLE_SIZE 2 // Размер площадки игрока
-#define BUTTON_R 3 // Пин кнопки первого игрока
-#define BUTTON_L 4 // Пин кнопки второго игрока
-#define DELAY 50
+#define PADDLE_SIZE 4 // Размер площадки игрока
+#define BUTTON_1 3 // Пин кнопки первого игрока
+#define BUTTON_2 4 // Пин кнопки второго игрока
 
-Adafruit_NeoPixel NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 int ballX = random(WIDTH);
-int ballY = random(3,6); // Мяч появляется в верхней или нижней зоне
-int ballDirX = random(2) * 2 - 1; // Случайное направление по горизонтали
-int ballDirY = random(2) * 2 - 1; // Случайное направление по вертикали
-int paddleY1 = HEIGHT / 2 - PADDLE_SIZE / 2; // Начальная позиция 1ой площадки по оси Y
-int paddleX1 = 0; // Начальная позиция 1ой площадки по оси X
-int paddleY2 = HEIGHT / 2 - PADDLE_SIZE / 2; // Начальная позиция 2ой площадки по оси Y
-int paddleX2 = WIDTH - 1; // Начальная позиция 2ой площадки по оси X
+int ballY = random(7,9); // Мяч появляется в верхней или нижней зоне
+int ballDirX = 1; // Направление по горизонтали
+int ballDirY = 1; // Направление по вертикали
+int paddleY1 = 0; // Начальная позиция 1ой площадки по оси Y
+int paddleX1 = WIDTH/2; // Начальная позиция 1ой площадки по оси X
+int paddleY2 = HEIGHT-1; // Начальная позиция 2ой площадки по оси Y
+int paddleX2 = WIDTH/2; // Начальная позиция 2ой площадки по оси X
 int scorePlayer1 = 0;
 int scorePlayer2 = 0;
 
-int getPixelNumber(int x, int y) {
+Adafruit_NeoPixel NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+void setup()
+{
+   NeoPixel.begin();
+   NeoPixel.show();
+   Serial.begin(9600);
+   pinMode(BUTTON_1, INPUT_PULLUP);
+   pinMode(BUTTON_2, INPUT_PULLUP);
+
+}
+
+int getPixelNumber(int x, int y)
+{
   // Функция для преобразования координат x, y в номер светодиода
   if (y % 2 == 0)
   {
@@ -34,85 +48,86 @@ int getPixelNumber(int x, int y) {
 
 void resetBall() // Функция возвращения мяча
  {
-  ballX = random(WIDTH);
-  ballY = random(2) * (HEIGHT - 1);
-  ballDirX = random(2) * 2 - 1;
-  ballDirY = random(2) * 2 - 1;
+   ballX = random(WIDTH);
+   ballY = random(7,9);
+   ballDirX = 1;
+   ballDirY = 1;
  }
 
-void setup()
-{
-   NeoPixel.begin();
-   pinMode(BUTTON_R, INPUT_PULLUP);
-   pinMode(BUTTON_L, INPUT_PULLUP);
-   Serial.begin(9600);  
-}
-
-void loop() 
-{ 
+void loop()
+ {
   NeoPixel.clear();
-   // Обновление позиции мяча
-  ballX += ballDirX;
-  ballY += ballDirY;
+
+   ballX += ballDirX;
+   ballY += ballDirY;
 
   // Проверка столкновения со стенками
-  if (ballX <= 0 || ballX >= WIDTH - 1) {
+  if (ballX == 0 || ballX == WIDTH - 1) 
+  {
     ballDirX *= -1;
   }
-  if (ballY <= 0 || ballY >= HEIGHT - 1) {
-    ballDirY *= -1;
-  }
 
-    // Проверка на пропуск мяча игроком
-  if (ballY == 0 && (ballX < paddleY1 || ballX >= paddleY1 + PADDLE_SIZE)) 
+  // Проверка столкновения с площадками игроков
+   if ( (ballY == 0 || ballY == HEIGHT - 1) && (ballX > paddleX1 && ballX <= paddleX1 + PADDLE_SIZE))
+   {
+    ballDirY *= -1;
+   }
+   else if ( (ballY == 0 || ballY == HEIGHT - 1) && (ballX > paddleX2 && ballX <= paddleX2 + PADDLE_SIZE))
+   {
+    ballDirY *= -1;
+   }
+
+  // Проверка на пропуск мяча игроком
+  if (ballY == 0 && (ballX < paddleX1 || ballX >= paddleX1 + PADDLE_SIZE)) 
   {
     scorePlayer2++;
     resetBall();
   }
-   else if (ballY == HEIGHT - 1 && (ballX < paddleY1 || ballX >= paddleY1 + PADDLE_SIZE)) {
+   else if (ballY == HEIGHT - 1 && (ballX < paddleX2 || ballX >= paddleX2 + PADDLE_SIZE)) 
+   {
     scorePlayer1++;
     resetBall();
-  }
-
-    // Управление площадкой игрока 1
-  if (!digitalRead(BUTTON_R) && paddleY1 > 0)
-   {
-    paddleY1--;
    }
-  if (digitalRead(BUTTON_R) && paddleY1 < HEIGHT - PADDLE_SIZE)
-   {
-    paddleY1++;
-  }
 
-// Управление площадкой игрока 2
-  if (!digitalRead(BUTTON_L) && paddleY2 > 0)
+  // Управление площадкой игрока 1
+  if (!digitalRead(BUTTON_1) && paddleX1 < WIDTH - PADDLE_SIZE)
    {
-    paddleY2--;
+    paddleX1++;
    }
-  if (digitalRead(BUTTON_L) && paddleY2 < HEIGHT - PADDLE_SIZE)
+  if (digitalRead(BUTTON_1) && paddleX1 > 0)
    {
-    paddleY2++;
+    paddleX1--;
   }
 
-  // Отображение мяча
-  NeoPixel.setPixelColor(getPixelNumber(ballX, ballY), NeoPixel.Color(150, 0, 0));
+   // Управление площадкой игрока 2
+  if (!digitalRead(BUTTON_2)&& paddleX2 > 0)
+   {
+    paddleX2--;
+   }
+  if (digitalRead(BUTTON_2) && paddleX2 < WIDTH - PADDLE_SIZE )
+   {
+    paddleX2++;
+  }
 
   // Отображение площадки 1 игрока
   for (int i = 0; i < PADDLE_SIZE; i++)
   {
-    NeoPixel.setPixelColor(getPixelNumber(paddleY1 + i, HEIGHT - 1), NeoPixel.Color(0, 150, 0));
+    NeoPixel.setPixelColor(getPixelNumber(paddleX1 + i, 0), NeoPixel.Color(0, 0, 150));
   }
 
-// Отображение площадки 2 игрока
+  // Отображение площадки 2 игрока
   for (int i = 0; i < PADDLE_SIZE; i++)
   {
-    NeoPixel.setPixelColor(getPixelNumber(paddleY2 + i, HEIGHT - 1), NeoPixel.Color(0, 150, 0));
+    NeoPixel.setPixelColor(getPixelNumber(paddleX2 + i, HEIGHT - 1), NeoPixel.Color(0, 150, 0));
   }
 
-   NeoPixel.show();
-   delay(500); // Скорость мяча
+  // Отображение мяча
+   NeoPixel.setPixelColor(getPixelNumber(ballX, ballY), NeoPixel.Color(150, 0, 0));
 
-  // Вывод текущего счета каждую секунду
+   NeoPixel.show();
+   delay(250); // Скорость мяча
+
+   // Вывод текущего счета каждую секунду
   static unsigned long LastScoreUpdateTime = 0;
   if (millis() - LastScoreUpdateTime >= 1000)
    {
@@ -122,4 +137,4 @@ void loop()
     Serial.println(scorePlayer2);
     LastScoreUpdateTime = millis();
    }
-}
+ }
